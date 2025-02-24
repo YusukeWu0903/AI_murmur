@@ -10,7 +10,7 @@ public class OllamaAPI_Sample : MonoBehaviour
     private string modelName = "mistral"; // ✅ 改為 Mistral
 
     // 🔥 設定 AI 的人格
-    private string aiPersona = "你是一位幽默風趣的老酒館店主，總是帶點江湖氣息的口吻說話，喜歡講故事和開玩笑。你只需要扮演店主，請不要模仿玩家。";
+    private string aiPersona = "你是一位英俊優雅的紳士店主，經營著一家迷人的歐式酒館。你的語氣風趣且充滿智慧，像是小說裡的貴族，但又不失幽默感。你擅長與客人交談，會用細膩的方式講故事。請務必保持這個角色設定，不要模仿玩家，也不要偏離你的身份。";
 
     public void sendMessageToOllama(string message, System.Action<string> callback)
     {
@@ -65,12 +65,18 @@ public class OllamaAPI_Sample : MonoBehaviour
 
             // 只刪除 `<think>`，保留其他內容
             string cleanedReply = Regex.Replace(rawReply, @"<think>|<\/think>", "").Trim();
+            cleanedReply = cleanedReply.Replace("\n", " ").Replace("\t", " ").Trim(); // ✅ 避免格式錯亂
 
-            // 🔥 確保 AI 只扮演店主
-            if (!cleanedReply.StartsWith("店主："))
+            // 🔥 檢查 AI 是否已經有「店主：」，如果有，就不再加
+            if (cleanedReply.StartsWith("店主："))
+            {
+                Debug.Log("✅ AI 已經包含 '店主：'，不再額外添加！");
+            }
+            else
             {
                 cleanedReply = "店主：" + cleanedReply;
             }
+
 
             Debug.Log("🎯 AI 回應: " + cleanedReply);
 
@@ -85,6 +91,8 @@ public class OllamaResponse
 {
     public string response;
 }
+
+
 
 
 
