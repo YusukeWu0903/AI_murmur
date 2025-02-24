@@ -20,8 +20,13 @@ public class OllamaAPI_Sample : MonoBehaviour
 
     IEnumerator PostRequest(string message, System.Action<string> callback)
     {
-        // 🔥 明確區分角色
-        string finalPrompt = $"{aiPersona}\n\n玩家：{message}\n\n請用「店主：」開頭回答，不要扮演玩家。";
+        // 🔥 明確區分角色，強調店主的語氣與玩家互動方式
+        string finalPrompt = $"{aiPersona}\n\n"
+            + "玩家說的話會在『玩家：』後面，請根據玩家的話回應。\n"
+            + "請用『店主：』開頭回答，不要扮演玩家。\n\n"
+            + $"玩家：{message}\n\n"
+            + "請回答：";
+
 
         var requestBody = new
         {
@@ -61,26 +66,29 @@ public class OllamaAPI_Sample : MonoBehaviour
                 yield break;
             }
 
-            string rawReply = responseData.response;
+            // 🔥 確保變數只被定義一次
+            string rawReply = responseData.response; // ← 保留這個，不要重複定義
 
             // 只刪除 `<think>`，保留其他內容
             string cleanedReply = Regex.Replace(rawReply, @"<think>|<\/think>", "").Trim();
-            cleanedReply = cleanedReply.Replace("\n", " ").Replace("\t", " ").Trim(); // ✅ 避免格式錯亂
 
-            // 🔥 檢查 AI 是否已經有「店主：」，如果有，就不再加
-            if (cleanedReply.StartsWith("店主："))
-            {
-                Debug.Log("✅ AI 已經包含 '店主：'，不再額外添加！");
-            }
-            else
+            // ✅ 避免格式錯亂
+            cleanedReply = cleanedReply.Replace("\n", " ").Replace("\t", " ").Trim();
+
+            // 🔥 確保「店主：」只出現一次
+            if (!cleanedReply.StartsWith("店主："))
             {
                 cleanedReply = "店主：" + cleanedReply;
             }
-
+            else
+            {
+                cleanedReply = cleanedReply.Replace("店主：店主：", "店主："); // 避免重複
+            }
 
             Debug.Log("🎯 AI 回應: " + cleanedReply);
-
             callback?.Invoke(cleanedReply);
+
+
         }
     }
 }
